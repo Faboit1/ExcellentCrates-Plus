@@ -115,7 +115,7 @@ public class OpeningUtils {
                     SpinStep.of(2, 10),
                     SpinStep.of(1, 12)
                 )
-                .provider(RewardProvider.everything())
+                .provider(RewardProvider.edging())
                 .sound(Sound.BLOCK_NOTE_BLOCK_XYLOPHONE)
                 .build()
             );

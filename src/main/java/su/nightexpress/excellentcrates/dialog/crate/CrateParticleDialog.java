@@ -220,7 +220,7 @@ public class CrateParticleDialog extends Dialog<Crate> {
             dataParser = nbtHolder -> {
                 Color color = parseColor(nbtHolder);
                 float power = nbtHolder.getFloat(JSON_EXTRA, DEF_POWER);
-                return new Particle.Spell(color, power);
+                return new Particle.DustTransition(color, color, power);
             };
         }
         else if (type == ItemStack.class) {

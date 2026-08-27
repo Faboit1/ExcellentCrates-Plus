@@ -1,67 +1,62 @@
-# About
-<div align="center">
-  <img src="https://nightexpressdev.com/excellentcrates/header.png">
+# ExcellentCrates-Plus
 
-<a href="https://discord.gg/EwNFGsnGaW"><img src="https://img.shields.io/discord/903053383475277844?style=for-the-badge&label=Discord&color=%2333a8ff"></a>
-<a href="https://ko-fi.com/nightexpress"><img src="https://img.shields.io/badge/donate-%E2%9D%A4%EF%B8%8F_to_support-dff33?style=for-the-badge"></a>
-<a href="https://nightexpressdev.com/excellentcrates/"><img src="https://img.shields.io/badge/wiki-documentation-ff9c33?style=for-the-badge"></a>
+[![Build](https://github.com/Faboit1/ExcellentCrates-Plus/actions/workflows/build.yml/badge.svg)](https://github.com/Faboit1/ExcellentCrates-Plus/actions/workflows/build.yml)
 
-  ![](https://repo.nightexpressdev.com/api/badge/latest/releases/su/nightexpress/excellentcrates/ExcellentCrates?color=40c14a&name=ExcellentCrates&prefix=v)
+A fork of [ExcellentCrates](https://github.com/nulli0n/ExcellentCrates) with **Folia support** and quality-of-life improvements.
 
-**ExcellentCrates** is a lightweight, feature rich and highly customizable crates plugin.
+## What's Changed
 
-<img src="https://nightexpressdev.com/img/excellentcrates/crate_editor.gif"><img src="https://nightexpressdev.com/img/excellentcrates/gui_opening.gif">
-<img src="https://nightexpressdev.com/img/excellentcrates/block_opening.gif"><img src="https://nightexpressdev.com/img/excellentcrates/promo_crate_preview.gif">
-<img src="https://nightexpressdev.com/img/excellentcrates/selective_opening.gif">
-</div>
+### Folia Support
+All Bukkit scheduler calls have been replaced with Folia's region-aware scheduler APIs:
+- `GlobalRegionScheduler` for world-tick tasks
+- `RegionScheduler` for location-bound operations (holograms, block checks)
+- `entity.getScheduler()` for per-player operations (crate openings)
+- `AsyncScheduler` for async database operations
 
-## Features
-- [**GUI Editor**](https://nightexpressdev.com/excellentcrates/editor-gui/). Manage your crates, rewards and keys right in game!
-- [**Custom Item Support**](https://nightexpressdev.com/excellentcrates/hooks/custom-items/). Supports custom item plugins, such as Nexo, ItemsAdder, Oraxen, ExecutableItems, MMOItems, etc.
-- [**Built-in Holograms**](https://nightexpressdev.com/excellentcrates/hooks/holograms/). Display custom holograms above crate blocks!
-- [**Particle Effects**](https://nightexpressdev.com/excellentcrates/crates/placement#particle-effects). Display amazing particles around crate blocks!
-- [**Crate Items**](https://nightexpressdev.com/excellentcrates/crates/appearance/). Give crates directly to player's inventories!
-- [**Crate Blocks**](https://nightexpressdev.com/excellentcrates/crates/placement). Create crate zones by linking crates with any blocks!
-- [**Physical Keys**](https://nightexpressdev.com/excellentcrates/keys/setup/). Give crate keys directly to player's inventories!
-- [**Virtual Keys**](https://nightexpressdev.com/excellentcrates/keys/virtual-keys/). Keep crate keys as virtual to prevent sharing, trading or selling them!
-- [**Custom Previews**](https://nightexpressdev.com/excellentcrates/crates/previews/). Create custom and unique preview GUI for every crate!
-- [**Custom Openings**](https://nightexpressdev.com/excellentcrates/crates/openings/). Crate custom and unique opening GUI for every crate!
-- [**Milestones**](https://nightexpressdev.com/excellentcrates/crates/milestones/). Reward players for opening certain amount of a crate in a row!
-- Mass Open. Open all your crate keys in a single click!
-- [**Open Cooldown**](https://nightexpressdev.com/excellentcrates/crates/open-cooldown/). Set per player open cooldown for a crate!
-- [**Open Cost**](https://nightexpressdev.com/excellentcrates/crates/open-cost/). Set per player currency cost to open a crate!
-- [**Permission Requirements**](https://nightexpressdev.com/excellentcrates/crates/open-permission/). Assign permission requirement to a crate!
-- [**Key Requirements**](https://nightexpressdev.com/excellentcrates/crates/key-requirements/). Assign multiple key requirements to the same crate!
-- Pushback. Push players away from a crate block if they don't met the requirements!
-- [**Rarities**](https://nightexpressdev.com/excellentcrates/rewards/rarity-weights/). Split your rewards by rarity affecting their roll chance!
-- [**Weights**](https://nightexpressdev.com/excellentcrates/rewards/rarity-weights/). Balance your reward's and rarity's chances with auto-scalable weight system!
-- Selectable Rewards. Select rewards from a crate with no gambling!
-- [**Reward Types**](https://nightexpressdev.com/excellentcrates/rewards/setup/). Create Item or Command rewards!
-- [**Reward Items**](https://nightexpressdev.com/excellentcrates/rewards/setup#setup-item-reward). Bundle up to 27 custom items per Item Reward!
-- [**Reward Commands**](https://nightexpressdev.com/excellentcrates/rewards/setup#setup-command-reward). Bundle unlimited amount of commands per Command Reward!
-- [**Reward Permissions**](https://nightexpressdev.com/excellentcrates/rewards/permissions/). Prevent players from receiving a reward if they do/don't have certain permissions!
-- Reward Broadcast. Broadcast a custom message when player received certain reward(s)!
-- [**Reward Limits**](https://nightexpressdev.com/excellentcrates/rewards/roll-limits/). Limit how many times a reward can be rolled out on global and/or per-player basis!
-- Reward Logs. Log all reward rolls in a dedicated log file!
-- [**PlaceholderAPI**](https://nightexpressdev.com/excellentcrates/hooks/placeholder_api/) Support!
+Works with **stock NightCore 2.15.2** — no custom NightCore build required on the server.
 
-## System Requirements
-- Server Software: [**Spigot**](https://www.spigotmc.org/link-forums/88/) or [**Paper**](https://papermc.io/downloads/paper)
-- Server Version: <span style="color:red">**1.21.8**</span> or above
-- Java Version: [**21**](https://adoptium.net/temurin/releases) or above
-- Dependencies:
-    - [**nightcore**](https://nightexpressdev.com/nightcore/) - Plugin engine.
-- Optional Plugins:
-    - [**PacketEvents**](https://spigotmc.org/resources/80279/) or [**ProtocolLib**](https://ci.dmulloy2.net/job/ProtocolLib/) - Crate holograms.
-- Folia Supported: <span style="color:red">**No**</span>
-- Forge Supported: <span style="color:red">**No**</span>
+### No Message Prefixes
+The `[ExcellentCrates]` prefix has been fully removed from all plugin messages. Clean output with no configuration needed.
 
-## Links
-- [SpigotMC](https://spigotmc.org/resources/48732/)
-- [Hangar](https://hangar.papermc.io/NightExpress/ExcellentCrates)
-- [Modrinth](https://modrinth.com/plugin/excellentcrates)
-- [Documentation](https://nightexpressdev.com/excellentcrates/)
-- [Developer API](https://nightexpressdev.com/excellentcrates/developer-api/)
+### Removed Premium Dependencies
+Integration code for premium/paid plugins (Nexo, ExecutableItems, MMOItems, etc.) has been removed so the plugin compiles without proprietary stubs.
 
-## Donate
-If you like my work or enjoy using my plugins, feel free to [Buy me a coffee](https://ko-fi.com/nightexpress) :) Thank you! 🧡
+## Requirements
+
+| | Version |
+|---|---|
+| Server | [Paper](https://papermc.io/downloads/paper) or [Folia](https://papermc.io/software/folia) |
+| Minecraft | 1.21.8+ |
+| Java | 21+ |
+| NightCore | [2.15.2+](https://nightexpressdev.com/nightcore/) |
+
+**Optional:** [PacketEvents](https://spigotmc.org/resources/80279/) or [ProtocolLib](https://ci.dmulloy2.net/job/ProtocolLib/) for crate holograms.
+
+## Downloads
+
+Grab the latest JAR from [Releases](https://github.com/Faboit1/ExcellentCrates-Plus/releases) — every push to `main` auto-builds and publishes a release.
+
+## Building
+
+```bash
+mvn clean package -DskipTests
+```
+
+NightCore 2.10.0 is bundled in `libs/` and installed to the local Maven repo automatically during CI. For local builds, run this first:
+
+```bash
+mvn install:install-file \
+  -Dfile=libs/nightcore-2.10.0-shaded.jar \
+  -DgroupId=su.nightexpress.nightcore \
+  -DartifactId=main \
+  -Dversion=2.10.0 \
+  -Dclassifier=shaded \
+  -Dpackaging=jar \
+  -DgeneratePom=true
+```
+
+## Credits
+
+- [NightExpress](https://github.com/nulli0n) — original ExcellentCrates plugin
+- [NightCore](https://github.com/nulli0n/nightcore-spigot) — plugin engine
+- [ExcellentCrates Wiki](https://nightexpressdev.com/excellentcrates/) — documentation

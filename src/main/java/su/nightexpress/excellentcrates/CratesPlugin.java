@@ -1,5 +1,6 @@
 package su.nightexpress.excellentcrates;
 
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import su.nightexpress.excellentcrates.api.addon.CratesAddon;
 import su.nightexpress.excellentcrates.command.BaseCommands;
@@ -28,6 +29,7 @@ import su.nightexpress.nightcore.util.Plugins;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class CratesPlugin extends NightPlugin {
@@ -47,6 +49,53 @@ public class CratesPlugin extends NightPlugin {
     private EditorManager   editorManager;
 
     private CrateLogger crateLogger;
+
+    @Override
+    @NotNull
+    public String getPrefix() {
+        return "";
+    }
+
+    @Override
+    public void runTask(@NotNull Runnable runnable) {
+        getServer().getGlobalRegionScheduler().run(this, task -> runnable.run());
+    }
+
+    @Override
+    public void runTask(@NotNull Consumer<BukkitTask> consumer) {
+        getServer().getGlobalRegionScheduler().run(this, task -> consumer.accept(null));
+    }
+
+    @Override
+    public void runTaskAsync(@NotNull Consumer<BukkitTask> consumer) {
+        getServer().getAsyncScheduler().runNow(this, task -> consumer.accept(null));
+    }
+
+    @Override
+    public void runTaskLater(@NotNull Consumer<BukkitTask> consumer, long delay) {
+        if (delay <= 0) delay = 1;
+        getServer().getGlobalRegionScheduler().runDelayed(this, task -> consumer.accept(null), delay);
+    }
+
+    @Override
+    public void runTaskLaterAsync(@NotNull Consumer<BukkitTask> consumer, long delay) {
+        long delayMs = Math.max(delay * 50, 1);
+        getServer().getAsyncScheduler().runDelayed(this, task -> consumer.accept(null), delayMs, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public void runTaskTimer(@NotNull Consumer<BukkitTask> consumer, long delay, long interval) {
+        if (delay <= 0) delay = 1;
+        if (interval <= 0) interval = 1;
+        getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> consumer.accept(null), delay, interval);
+    }
+
+    @Override
+    public void runTaskTimerAsync(@NotNull Consumer<BukkitTask> consumer, long delay, long interval) {
+        long delayMs = Math.max(delay * 50, 1);
+        long intervalMs = Math.max(interval * 50, 1);
+        getServer().getAsyncScheduler().runAtFixedRate(this, task -> consumer.accept(null), delayMs, intervalMs, TimeUnit.MILLISECONDS);
+    }
 
     @Override
     @NotNull

@@ -1,7 +1,10 @@
 package su.nightexpress.excellentcrates;
 
+import org.bukkit.Server;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import su.nightexpress.excellentcrates.api.addon.CratesAddon;
 import su.nightexpress.excellentcrates.command.BaseCommands;
 import su.nightexpress.excellentcrates.config.Config;
@@ -34,6 +37,8 @@ import java.util.function.Consumer;
 
 public class CratesPlugin extends NightPlugin {
 
+    private static final boolean FOLIA = hasFolia();
+
     private final List<CratesAddon> addons = new ArrayList<>();
 
     private DialogRegistry dialogRegistry;
@@ -56,14 +61,60 @@ public class CratesPlugin extends NightPlugin {
         return "";
     }
 
+    private static boolean hasFolia() {
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            return true;
+        }
+        catch (ClassNotFoundException exception) {
+            return false;
+        }
+    }
+
     @Override
     public void runTask(@NotNull Runnable runnable) {
-        getServer().getGlobalRegionScheduler().run(this, task -> runnable.run());
+        this.runOnOwningRegion(runnable);
     }
 
     @Override
     public void runTask(@NotNull Consumer<BukkitTask> consumer) {
-        getServer().getGlobalRegionScheduler().run(this, task -> consumer.accept(null));
+        this.runOnOwningRegion(() -> consumer.accept(null));
+    }
+
+    /**
+     * Folia's global region scheduler ticks no region and owns no entity, so a task that touches a player from
+     * it fails the tick thread check. Menus hand us player scoped work (closing an inventory, reopening a menu,
+     * flushing items) from the region that already ticks that player, so such a task is kept on that region
+     * instead of being moved to the global one.
+     */
+    private void runOnOwningRegion(@NotNull Runnable runnable) {
+        Player player = this.getCurrentRegionPlayer();
+
+        if (player == null) {
+            getServer().getGlobalRegionScheduler().run(this, task -> runnable.run());
+        }
+        else {
+            player.getScheduler().run(this, task -> runnable.run(), null);
+        }
+    }
+
+    /**
+     * @return A player ticked by the region running the current thread, or null when the caller is on the global
+     * region, on an async thread, or on a server that ticks everything at once. Players sharing a region share
+     * its thread, so any of them puts the task back onto it.
+     */
+    @Nullable
+    private Player getCurrentRegionPlayer() {
+        if (!FOLIA) return null; // The main thread owns everything, the global scheduler already runs there.
+
+        Server server = getServer();
+        if (server.isGlobalTickThread()) return null;
+
+        for (Player player : server.getOnlinePlayers()) {
+            if (server.isOwnedByCurrentRegion(player)) return player;
+        }
+
+        return null;
     }
 
     @Override

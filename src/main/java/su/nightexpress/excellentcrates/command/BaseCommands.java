@@ -333,7 +333,7 @@ public class BaseCommands {
         CrateKey key = arguments.get(CommandArguments.KEY, CrateKey.class);
 
         int amount = arguments.getInt(CommandArguments.AMOUNT, 1);
-        if (amount == 0) return false;
+        if (amount <= 0) return false;
 
         boolean silent = context.hasFlag(CommandFlags.SILENT);
 

@@ -63,7 +63,11 @@ public class RewardSpinner extends AbstractSpinner {
     private void prepareRewards() {
         for (int winSlot : this.winSlots) {
             if (Lists.contains(this.slots, winSlot)) {
-                this.opening.addReward(this.rollReward(false));
+                // Thrown while the opening starts, where it is stopped and refunded.
+                Reward reward = this.rollReward(false);
+                if (reward == null) throw new IllegalStateException("No rewards of this spinner's rarities are available!");
+
+                this.opening.addReward(reward);
             }
         }
     }
@@ -173,7 +177,12 @@ public class RewardSpinner extends AbstractSpinner {
             .orElseGet(Set::of);
     }
 
-    @NotNull
+    /**
+     * @return A reward of this spinner's rarities, or null when the player cannot win any of them anymore (permissions,
+     * limits, cooldowns). For visual rolls that leaves the slot empty instead of failing every tick, which would freeze
+     * the animation and lock the player in the GUI.
+     */
+    @Nullable
     private Reward rollReward(boolean visual) {
         Crate crate = this.opening.getCrate();
         Player player = this.opening.getPlayer();
@@ -189,7 +198,7 @@ public class RewardSpinner extends AbstractSpinner {
                     rarityMap.put(rarity, ramped ? this.edging.getRampedWeight(rarity.getWeight(), progress) : rarity.getWeight());
                 }
             });
-            if (rarityMap.isEmpty()) throw new IllegalStateException("No rewards available!");
+            if (rarityMap.isEmpty()) return null;
 
             Rarity rarity = Rnd.getByWeight(rarityMap);
             return crate.rollReward(this.opening.getPlayer(), rarity);
@@ -197,7 +206,7 @@ public class RewardSpinner extends AbstractSpinner {
         else {
             List<Reward> rewards = crate.getRewards(player);
             rewards.removeIf(reward -> !this.rarities.contains(reward.getRarity()));
-            if (rewards.isEmpty()) throw new IllegalStateException("No rewards available!");
+            if (rewards.isEmpty()) return null;
 
             return Rnd.get(rewards);
         }

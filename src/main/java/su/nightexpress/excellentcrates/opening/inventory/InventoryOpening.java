@@ -67,9 +67,13 @@ public class InventoryOpening extends AbstractOpening {
 
     @Override
     protected void onStart() {
+        Inventory inventory = this.view.getTopInventory();
+
         this.config.getDefaultItems().values().forEach(menuItem -> {
             for (int slot : menuItem.getSlots()) {
-                this.view.getTopInventory().setItem(slot, menuItem.getItem().getItemStack());
+                if (slot < 0 || slot >= inventory.getSize()) continue; // Same as spinners: skip slots that do not fit the menu.
+
+                inventory.setItem(slot, menuItem.getItem().getItemStack());
             }
         });
 
@@ -102,10 +106,15 @@ public class InventoryOpening extends AbstractOpening {
     protected void onStop() {
         this.getSpinners().forEach(Spinner::stop);
 
-        super.onStop();
-
-        if (this.player.getOpenInventory() == this.view) {
-            this.player.closeInventory();
+        try {
+            super.onStop();
+        }
+        finally {
+            // The opening is unregistered by now and nothing cancels clicks in this view anymore, so it must close even
+            // when delivering rewards failed. Otherwise the reward items on the reel could be taken out.
+            if (this.player.getOpenInventory() == this.view) {
+                this.player.closeInventory();
+            }
         }
     }
 

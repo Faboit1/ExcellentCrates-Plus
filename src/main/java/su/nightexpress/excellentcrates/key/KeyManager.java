@@ -214,14 +214,20 @@ public class KeyManager extends AbstractManager<CratesPlugin> {
 
     public void giveKeysOnHold(@NotNull Player player) {
         CrateUser user = plugin.getUserManager().getOrFetch(player);
-        user.getKeysOnHold().forEach((keyId, amount) -> {
+        Map<String, Integer> keysOnHold = new HashMap<>(user.getKeysOnHold());
+        if (keysOnHold.isEmpty()) return;
+
+        // Clear and write through before delivering. A regular save only lands after the save delay, and until then
+        // another server sharing the same storage would still see the keys on hold and hand them out again.
+        user.cleanKeysOnHold();
+        this.plugin.runTaskAsync(task -> this.plugin.getUserManager().saveInDatabase(user));
+
+        keysOnHold.forEach((keyId, amount) -> {
             CrateKey crateKey = this.getKeyById(keyId);
             if (crateKey == null) return;
 
             this.giveKey(player, crateKey, amount);
         });
-        user.cleanKeysOnHold();
-        this.plugin.getUserManager().save(user);
     }
 
     public void setKey(@NotNull CrateUser user, @NotNull CrateKey key, int amount) {
@@ -271,6 +277,8 @@ public class KeyManager extends AbstractManager<CratesPlugin> {
     }
 
     public void giveKey(@NotNull Player player, @NotNull CrateKey key, int amount) {
+        if (amount <= 0) return; // Never flip the sign: physical keys used to hand out |amount|, virtual keys took it.
+
         if (key.isVirtual()) {
             CrateUser user = plugin.getUserManager().getOrFetch(player);
             user.addKeys(key.getId(), amount);
@@ -278,7 +286,7 @@ public class KeyManager extends AbstractManager<CratesPlugin> {
         }
         else {
             ItemStack keyItem = key.getItemStack();
-            keyItem.setAmount(amount < 0 ? Math.abs(amount) : amount);
+            keyItem.setAmount(amount);
             Players.addItem(player, keyItem);
         }
     }

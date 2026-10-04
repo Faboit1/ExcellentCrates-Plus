@@ -14,10 +14,11 @@ public class RewardData {
     private final String rewardId;
     private final String holder;
 
-    private int  rolls;
-    private long cooldownUntil;
+    // Changed under CrateManager's limit lock but read by the async save task, which must see current values.
+    private volatile int  rolls;
+    private volatile long cooldownUntil;
 
-    private boolean saveRequired;
+    private volatile boolean saveRequired;
 
     @NotNull
     public static RewardData create(@NotNull Reward reward, @Nullable Player player) {

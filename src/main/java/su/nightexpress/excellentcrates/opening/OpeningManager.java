@@ -188,11 +188,29 @@ public class OpeningManager extends AbstractManager<CratesPlugin> {
         return provider.createOpening(player, source, cost);
     }
 
-    public void startOpening(@NotNull Player player, @NotNull Opening opening, boolean instaRoll) {
+    /**
+     * @return Whether the opening started. The player is charged before this is called, so an opening that fails to
+     * start is stopped and refunded instead of being left registered, where it would lock the player in and pay out a
+     * refund whenever it is stopped later.
+     */
+    public boolean startOpening(@NotNull Player player, @NotNull Opening opening, boolean instaRoll) {
         this.openingByPlayerMap.putIfAbsent(player.getUniqueId(), opening);
 
-        opening.start(); // Start ticking
+        try {
+            opening.start(); // Start ticking
 
-        if (instaRoll) opening.instaRoll();
+            if (instaRoll) opening.instaRoll();
+            return true;
+        }
+        catch (RuntimeException exception) {
+            this.plugin.error("Could not start crate opening for " + player.getName() + ": " + exception.getMessage());
+            exception.printStackTrace();
+
+            if (!opening.isCompleted()) {
+                opening.setRefundable(true);
+            }
+            this.stopOpening(player);
+            return false;
+        }
     }
 }

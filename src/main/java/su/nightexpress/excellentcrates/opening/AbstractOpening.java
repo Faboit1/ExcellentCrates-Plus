@@ -121,7 +121,12 @@ public abstract class AbstractOpening implements Opening {
             globalData.setLatestOpener(this.player);
             globalData.setDirty(true);
 
-            this.rewards.forEach(reward -> reward.give(this.player));
+            // A rolled reward can be swapped at delivery when its limit ran out meanwhile, so announce what was given.
+            List<Reward> delivered = new ArrayList<>();
+            this.rewards.forEach(reward -> {
+                Reward granted = this.plugin.getCrateManager().deliverReward(this.player, reward);
+                if (granted != null) delivered.add(granted);
+            });
 
             if (crate.isOpeningCooldownEnabled()) {
                 userData.addOpeningStreak(1);
@@ -141,7 +146,7 @@ public abstract class AbstractOpening implements Opening {
 
             Lang.CRATE_OPEN_RESULT_INFO.message().send(this.player, replacer -> replacer
                 .replace(this.crate.replacePlaceholders())
-                .replace(Placeholders.GENERIC_REWARDS, this.rewards.stream()
+                .replace(Placeholders.GENERIC_REWARDS, delivered.stream()
                     .map(reward -> reward.replacePlaceholders().apply(Lang.CRATE_OPEN_RESULT_REWARD.text()))
                     .collect(Collectors.joining(", "))
                 )

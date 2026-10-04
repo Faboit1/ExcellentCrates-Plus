@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +35,16 @@ public class OpeningListener extends AbstractListener<CratesPlugin> {
         if (!(opening instanceof InventoryOpening inventoryOpening)) return;
 
         inventoryOpening.onClick(event);
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onInvOpeningDrag(InventoryDragEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        Opening opening = this.manager.getOpening(player);
+        if (!(opening instanceof InventoryOpening inventoryOpening)) return;
+        if (inventoryOpening.getView() != event.getView()) return;
+
+        event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

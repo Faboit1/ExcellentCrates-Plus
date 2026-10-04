@@ -71,6 +71,7 @@ public class CrateManager extends AbstractManager<CratesPlugin> {
     private final Map<WorldPos, Crate>     crateByPosMap;
     private final Map<String, PreviewMenu> previewByIdMap;
     private final Map<UUID, Long>          previewCooldown;
+    private final Object                   limitLock;
 
     private OpeningCostMenu   costMenu;
     private OpeningAmountMenu amountMenu;
@@ -85,6 +86,7 @@ public class CrateManager extends AbstractManager<CratesPlugin> {
         this.crateByPosMap = new HashMap<>();
         this.previewByIdMap = new HashMap<>();
         this.previewCooldown = new HashMap<>();
+        this.limitLock = new Object();
     }
 
     @Override
@@ -598,8 +600,8 @@ public class CrateManager extends AbstractManager<CratesPlugin> {
 
         Opening opening = this.plugin.getOpeningManager().createOpening(player, source, realCost);
 
-        this.plugin.getOpeningManager().startOpening(player, opening, options.has(OpenOptions.Option.IGNORE_ANIMATION));
-
+        // Charge before the opening runs: instant openings hand out their rewards while starting, and a refund must
+        // never be paid for a charge that has not happened.
         if (realCost != null) {
             realCost.takeAll(player);
         }
@@ -609,7 +611,7 @@ public class CrateManager extends AbstractManager<CratesPlugin> {
             item.setAmount(item.getAmount() - 1);
         }
 
-        return true;
+        return this.plugin.getOpeningManager().startOpening(player, opening, options.has(OpenOptions.Option.IGNORE_ANIMATION));
     }
 
     private void pushback(@NotNull Player player, @NotNull CrateSource source) {
@@ -642,27 +644,75 @@ public class CrateManager extends AbstractManager<CratesPlugin> {
     }
 
     public void giveReward(@NotNull Player player, @NotNull Reward reward) {
-        reward.giveContent(player);
+        this.deliverReward(player, reward);
+    }
 
-        Crate crate = reward.getCrate();
+    /**
+     * @return The reward actually delivered: the given one, one the player can still win when its limit ran out in the
+     * meantime, or null when nothing is left to win.
+     */
+    @Nullable
+    public Reward deliverReward(@NotNull Player player, @NotNull Reward reward) {
+        Reward granted = this.claimReward(player, reward);
+        if (granted == null) return null;
+
+        granted.giveContent(player);
+
+        Crate crate = granted.getCrate();
         GlobalCrateData globalData = this.plugin.getDataManager().getCrateDataOrCreate(crate);
 
-        globalData.setLatestReward(reward);
+        globalData.setLatestReward(granted);
         globalData.setDirty(true);
 
-        if (reward.isBroadcast()) {
+        if (granted.isBroadcast()) {
             Lang.CRATE_OPEN_REWARD_BROADCAST.message().broadcast(replacer -> replacer
                 .replace(Placeholders.forPlayerWithPAPI(player))
                 .replace(crate.replacePlaceholders())
-                .replace(reward.replacePlaceholders())
+                .replace(granted.replacePlaceholders())
             );
         }
 
-        this.addRollCount(player, reward);
-        this.plugin.getCrateLogger().logReward(player, reward);
+        this.plugin.getCrateLogger().logReward(player, granted);
 
-        CrateObtainRewardEvent event = new CrateObtainRewardEvent(reward, player);
+        CrateObtainRewardEvent event = new CrateObtainRewardEvent(granted, player);
         this.plugin.getPluginManager().callEvent(event);
+        return granted;
+    }
+
+    /**
+     * Rewards are rolled when an opening starts (or picked in a selectable crate) but delivered when it ends, and other
+     * openings may use up their limits in between. So the limit is checked and counted at delivery, and a reward that
+     * ran out is swapped for one the player can still win.
+     *
+     * @return The reward to deliver, or null when the player cannot win anything anymore.
+     */
+    @Nullable
+    private Reward claimReward(@NotNull Player player, @NotNull Reward reward) {
+        if (this.tryConsumeLimit(player, reward)) return reward;
+
+        Crate crate = reward.getCrate();
+        for (int attempt = 0; attempt < 5 && crate.hasRewards(player); attempt++) {
+            Reward substitute = crate.rollReward(player);
+            if (substitute != null && this.tryConsumeLimit(player, substitute)) return substitute;
+        }
+
+        this.plugin.warn("Reward '" + reward.getId() + "' of crate '" + crate.getId() + "' ran out before " + player.getName() + " could claim it, and nothing else was left to win.");
+        return null;
+    }
+
+    /**
+     * Checks and counts a reward's limits as one step, so two openings (on Folia, possibly on different region threads)
+     * can never both claim its last roll.
+     */
+    public boolean tryConsumeLimit(@NotNull Player player, @NotNull Reward reward) {
+        if (!reward.getLimits().isEnabled()) return true;
+
+        synchronized (this.limitLock) {
+            if (reward.isOnCooldown(player) || reward.getAvailableRolls(player) == 0) return false;
+
+            this.addRollCount(player, reward);
+            return true;
+        }
     }
 
     public void addRollCount(@NotNull Player player, @NotNull Reward reward) {

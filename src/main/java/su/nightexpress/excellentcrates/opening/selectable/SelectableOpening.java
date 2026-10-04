@@ -8,6 +8,7 @@ import su.nightexpress.excellentcrates.api.crate.Reward;
 import su.nightexpress.excellentcrates.crate.cost.Cost;
 import su.nightexpress.excellentcrates.crate.impl.CrateSource;
 import su.nightexpress.excellentcrates.opening.AbstractOpening;
+import su.nightexpress.nightcore.ui.menu.MenuViewer;
 import su.nightexpress.nightcore.util.random.Rnd;
 
 import java.util.HashSet;
@@ -75,6 +76,12 @@ public class SelectableOpening extends AbstractOpening {
     }
 
     public boolean giveSelectedRewards() {
+        // A selection can sit in the GUI indefinitely, so drop picks whose limits ran out meanwhile and let the player re-pick.
+        if (this.selectedRewards.removeIf(reward -> !reward.canWin(this.player))) {
+            MenuViewer viewer = this.menu.getViewer(this.player);
+            if (viewer != null) this.menu.flush(viewer);
+        }
+
         if (!this.isAllRewardsSelected()) return false;
 
         this.setRefundable(false);

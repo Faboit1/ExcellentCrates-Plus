@@ -29,7 +29,9 @@ public class EdgingSettings implements Writeable {
     private static final String[] ENABLED_INFO = {
         "[ THIS SETTING DOES NOT AFFECT THE FINAL REWARD, IT IS PREDICTED WHEN PLAYER OPENED A CRATE ]",
         "Controls whether this spinner teases players with rare rewards near the end of the animation.",
-        "Only filler (visual) items of the animation are affected."
+        "Only filler (visual) items of the animation are affected.",
+        "Set to false to opt this spinner out.",
+        "[Default is true]"
     };
 
     private static final String[] CHANCE_INFO = {
@@ -105,23 +107,23 @@ public class EdgingSettings implements Writeable {
 
     @NotNull
     public static EdgingSettings read(@NotNull FileConfig config, @NotNull String path) {
-        EdgingSettings defaults = disabled();
+        EdgingSettings fallback = defaults();
 
-        boolean enabled = ConfigValue.create(path + ENABLED, defaults.isEnabled(), ENABLED_INFO).read(config);
+        boolean enabled = ConfigValue.create(path + ENABLED, fallback.isEnabled(), ENABLED_INFO).read(config);
 
-        double baitChance = ConfigValue.create(path + CHANCE, defaults.getBaitChance(), CHANCE_INFO).read(config);
+        double baitChance = ConfigValue.create(path + CHANCE, fallback.getBaitChance(), CHANCE_INFO).read(config);
 
-        Set<String> baitRarities = ConfigValue.create(path + RARITIES, defaults.getBaitRarities(), RARITIES_INFO).read(config);
+        Set<String> baitRarities = ConfigValue.create(path + RARITIES, fallback.getBaitRarities(), RARITIES_INFO).read(config);
 
-        EdgeMode edgeMode = ConfigValue.create(path + MODE, EdgeMode.class, defaults.getEdgeMode(), MODE_INFO).read(config);
+        EdgeMode edgeMode = ConfigValue.create(path + MODE, EdgeMode.class, fallback.getEdgeMode(), MODE_INFO).read(config);
 
-        boolean skipOnWin = ConfigValue.create(path + SKIP_ON_WIN, defaults.isSkipOnWin(), SKIP_ON_WIN_INFO).read(config);
+        boolean skipOnWin = ConfigValue.create(path + SKIP_ON_WIN, fallback.isSkipOnWin(), SKIP_ON_WIN_INFO).read(config);
 
-        boolean rampEnabled = ConfigValue.create(path + RAMP_ENABLED, defaults.isRampEnabled(), RAMP_ENABLED_INFO).read(config);
+        boolean rampEnabled = ConfigValue.create(path + RAMP_ENABLED, fallback.isRampEnabled(), RAMP_ENABLED_INFO).read(config);
 
-        int rampSpins = ConfigValue.create(path + RAMP_SPINS, defaults.getRampSpins(), RAMP_SPINS_INFO).read(config);
+        int rampSpins = ConfigValue.create(path + RAMP_SPINS, fallback.getRampSpins(), RAMP_SPINS_INFO).read(config);
 
-        double rampStrength = ConfigValue.create(path + RAMP_STRENGTH, defaults.getRampStrength(), RAMP_STRENGTH_INFO).read(config);
+        double rampStrength = ConfigValue.create(path + RAMP_STRENGTH, fallback.getRampStrength(), RAMP_STRENGTH_INFO).read(config);
 
         return new EdgingSettings(enabled, baitChance, baitRarities, edgeMode, skipOnWin, rampEnabled, rampSpins, rampStrength);
     }

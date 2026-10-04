@@ -24,7 +24,7 @@ public class RewardProvider implements SpinnerProvider, Writeable {
     private final EdgingSettings edging;
 
     public RewardProvider(@NotNull Set<String> rarities) {
-        this(rarities, EdgingSettings.disabled());
+        this(rarities, EdgingSettings.defaults());
     }
 
     public RewardProvider(@NotNull Set<String> rarities, @NotNull EdgingSettings edging) {
@@ -35,11 +35,6 @@ public class RewardProvider implements SpinnerProvider, Writeable {
     @NotNull
     public static RewardProvider everything() {
         return new RewardProvider(Lists.newSet(Placeholders.WILDCARD));
-    }
-
-    @NotNull
-    public static RewardProvider edging() {
-        return new RewardProvider(Lists.newSet(Placeholders.WILDCARD), EdgingSettings.defaults());
     }
 
     @NotNull
